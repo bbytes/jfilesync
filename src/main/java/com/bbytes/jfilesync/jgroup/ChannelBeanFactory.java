@@ -13,9 +13,21 @@
  */
 package com.bbytes.jfilesync.jgroup;
 
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jgroups.Channel;
 import org.jgroups.JChannel;
-import org.jgroups.JChannelFactory;
+import org.jgroups.protocols.FD;
+import org.jgroups.protocols.MERGE2;
+import org.jgroups.protocols.TCP;
+import org.jgroups.protocols.TCPGOSSIP;
+import org.jgroups.protocols.UNICAST2;
+import org.jgroups.protocols.VERIFY_SUSPECT;
+import org.jgroups.protocols.pbcast.GMS;
+import org.jgroups.protocols.pbcast.NAKACK2;
+import org.jgroups.protocols.pbcast.STABLE;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
@@ -24,12 +36,16 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * 
  * @author Thanneer
  * 
- * @version 1.0 
+ * @version 1.0
  */
-public class ChannelBeanFactory extends AbstractFactoryBean<Channel> implements DisposableBean {
-	private String jgroupsConfig;
+public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements DisposableBean {
+
 	private String clusterName;
-	private JChannelFactory factory;
+	private String port;
+	private String bindAddress;
+	private String gossipPort;
+	private String gossipBindAddress;
+	
 
 	/**
 	 * @return the clusterName
@@ -39,60 +55,94 @@ public class ChannelBeanFactory extends AbstractFactoryBean<Channel> implements 
 	}
 
 	/**
-	 * @param clusterName the clusterName to set
+	 * @param clusterName
+	 *            the clusterName to set
 	 */
 	public void setClusterName(String clusterName) {
 		this.clusterName = clusterName;
 	}
 
 	/**
-	 * @return the jgroupsConfig
+	 * @return the port
 	 */
-	public String getJgroupsConfig() {
-		return jgroupsConfig;
+	public String getPort() {
+		return port;
 	}
 
 	/**
-	 * @param jgroupsConfig the jgroupsConfig to set
+	 * @param port the port to set
 	 */
-	public void setJgroupsConfig(String jgroupsConfig) {
-		this.jgroupsConfig = jgroupsConfig;
+	public void setPort(String port) {
+		this.port = port;
 	}
 
 	/**
-	 * @return the factory
+	 * @return the bindAddress
 	 */
-	public JChannelFactory getFactory() {
-		return factory;
+	public String getBindAddress() {
+		return bindAddress;
 	}
 
 	/**
-	 * @param factory the factory to set
+	 * @param bindAddress the bindAddress to set
 	 */
-	public void setFactory(JChannelFactory factory) {
-		this.factory = factory;
+	public void setBindAddress(String bindAddress) {
+		this.bindAddress = bindAddress;
+	}
+
+	/**
+	 * @return the gossipPort
+	 */
+	public String getGossipPort() {
+		return gossipPort;
+	}
+
+	/**
+	 * @param gossipPort the gossipPort to set
+	 */
+	public void setGossipPort(String gossipPort) {
+		this.gossipPort = gossipPort;
+	}
+
+	/**
+	 * @return the gossipBindAddress
+	 */
+	public String getGossipBindAddress() {
+		return gossipBindAddress;
+	}
+
+	/**
+	 * @param gossipBindAddress the gossipBindAddress to set
+	 */
+	public void setGossipBindAddress(String gossipBindAddress) {
+		this.gossipBindAddress = gossipBindAddress;
 	}
 
 	public Class<Channel> getObjectType() {
 		return Channel.class;
 	}
 
-	protected Channel createInstance() throws Exception {
-		if (factory == null)
+	protected JChannel createInstance() throws Exception {
 
-			this.factory = new JChannelFactory(jgroupsConfig);
+		// Channel jChannel = factory.createChannel();
+		// jChannel.connect(clusterName);
+		//
+		// return jChannel;
+		TCPGOSSIP gossip = new TCPGOSSIP();
+		List<InetSocketAddress> initial_hosts = new ArrayList<InetSocketAddress>();
+		initial_hosts.add(new InetSocketAddress(5559));
+		gossip.setInitialHosts(initial_hosts);
 
-		Channel jChannel = factory.createChannel();
-		jChannel.connect(clusterName);
-		return jChannel;
+		JChannel channel = new JChannel(new TCP().setValue("use_send_queues", true).setValue("sock_conn_timeout", 300),
+				gossip, new MERGE2().setValue("min_interval", 1000).setValue("max_interval", 3000), new FD().setValue(
+						"timeout", 2000).setValue("max_tries", 2), new VERIFY_SUSPECT(), new NAKACK2().setValue(
+						"use_mcast_xmit", false), new UNICAST2(), new STABLE(), new GMS());
+		return channel;
 	}
 
-	protected void destroyInstance(Channel instance) throws Exception {
+	protected void destroyInstance(JChannel instance) throws Exception {
 		super.destroyInstance(instance);
-		if (instance instanceof JChannel) {
-			JChannel jChannel = (JChannel) instance;
-			jChannel.close();
-		}
+		instance.close();
 	}
 
 	public void destroy() throws Exception {

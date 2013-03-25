@@ -14,9 +14,7 @@
 package com.bbytes.jfilesync;
 
 import org.jgroups.Channel;
-import org.jgroups.ChannelException;
 import org.jgroups.Message;
-import org.jgroups.ReceiverAdapter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +36,7 @@ public class SendMessageTest {
 	Channel channel;
 
 	@Test
-	public void testSend() throws ChannelException {
+	public void testSend() throws Exception {
 		channel.send(new Message(null, null, "hello world"));
 		channel.close();
 	}

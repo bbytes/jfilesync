@@ -14,7 +14,6 @@
 package com.bbytes.jfilesync;
 
 import org.jgroups.Channel;
-import org.jgroups.ChannelException;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.junit.Test;
@@ -38,7 +37,7 @@ public class RecieveMessageTest {
 	Channel channel;
 
 	@Test
-	public void testSend() throws ChannelException, InterruptedException {
+	public void testSend() throws  InterruptedException {
 		channel.setReceiver(new ReceiverAdapter() {
 			public void receive(Message msg) {
 				System.out.println("received msg from " + msg.getSrc() + ": " + msg.getObject());

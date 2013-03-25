@@ -19,7 +19,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jgroups.Channel;
-import org.jgroups.ChannelException;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
@@ -43,7 +42,7 @@ public class JFileSyncClient extends ReceiverAdapter {
 
 	JFileSyncClientThread clientThread = new JFileSyncClientThread();
 
-	public JFileSyncClient() throws ChannelException {
+	public JFileSyncClient() throws Exception {
 		this.context = new ClassPathXmlApplicationContext("classpath:spring/applicationContext.xml");
 		fileSyncChannel = context.getBean(Channel.class);
 	}
@@ -88,7 +87,7 @@ public class JFileSyncClient extends ReceiverAdapter {
 				}
 
 				public void viewAccepted(View newView) {
-					System.out.println("received new view " + newView.printDetails());
+					System.out.println("received new view " + newView.toString());
 				}
 
 			});
