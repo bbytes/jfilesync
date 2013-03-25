@@ -41,7 +41,6 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 
 	private String clusterName;
 	private int port;
-	private String bindAddress;
 	private int gossipPort;
 	private String gossipBindAddress;
 
@@ -75,20 +74,6 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 		this.port = port;
 	}
 
-	/**
-	 * @return the bindAddress
-	 */
-	public String getBindAddress() {
-		return bindAddress;
-	}
-
-	/**
-	 * @param bindAddress
-	 *            the bindAddress to set
-	 */
-	public void setBindAddress(String bindAddress) {
-		this.bindAddress = bindAddress;
-	}
 
 	/**
 	 * @return the gossipPort
@@ -132,14 +117,19 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 		// return jChannel;
 		TCPGOSSIP gossip = new TCPGOSSIP();
 		List<InetSocketAddress> initial_hosts = new ArrayList<InetSocketAddress>();
-		initial_hosts.add(new InetSocketAddress(gossipBindAddress, gossipPort));
+		if (gossipBindAddress == null || gossipBindAddress.trim().length() == 0) {
+			initial_hosts.add(new InetSocketAddress(gossipPort));
+		} else {
+			initial_hosts.add(new InetSocketAddress(gossipBindAddress, gossipPort));
+		}
+
 		gossip.setInitialHosts(initial_hosts);
 
 		JChannel channel = new JChannel(new TCP().setValue("use_send_queues", true).setValue("sock_conn_timeout", 300)
-				.setValue("bind_port",port), gossip, new MERGE2()
-				.setValue("min_interval", 1000).setValue("max_interval", 3000), new FD().setValue("timeout", 2000)
-				.setValue("max_tries", 2), new VERIFY_SUSPECT(), new NAKACK2().setValue("use_mcast_xmit", false),
-				new UNICAST2(), new STABLE(), new GMS());
+				.setValue("bind_port", port), gossip, new MERGE2().setValue("min_interval", 1000).setValue(
+				"max_interval", 3000), new FD().setValue("timeout", 2000).setValue("max_tries", 2),
+				new VERIFY_SUSPECT(), new NAKACK2().setValue("use_mcast_xmit", false), new UNICAST2(), new STABLE(),
+				new GMS());
 		channel.connect(clusterName);
 		return channel;
 	}

@@ -16,8 +16,6 @@ package com.bbytes.jfilesync.sync;
 import java.io.Serializable;
 import java.net.URL;
 
-import org.jgroups.Message;
-
 /**
  * 
  * 

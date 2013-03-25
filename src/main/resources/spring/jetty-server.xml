@@ -4,8 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
-
-
 	<bean id="Server" class="org.eclipse.jetty.server.Server"
 		destroy-method="stop">
 
@@ -19,8 +17,8 @@
 		<property name="connectors">
 			<list>
 				<bean id="Connector" class="org.eclipse.jetty.server.nio.SelectChannelConnector">
-					<property name="host" value="${server.host}" />
-					<property name="port" value="${server.port}" />
+					<property name="host" value="${file.web.server.host}" />
+					<property name="port" value="${file.web.server.port}" />
 				</bean>
 			</list>
 		</property>
@@ -36,7 +34,7 @@
 									<value>index.html</value>
 								</list>
 							</property>
-							<property name="resourceBase" value="${monitor.folder.destination}" />
+							<property name="resourceBase" value="${sync.folder.destination}" />
 						</bean>
 						<bean class="org.eclipse.jetty.server.handler.DefaultHandler" />
 					</list>

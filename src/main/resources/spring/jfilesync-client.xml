@@ -12,14 +12,11 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 		</property>
 	</bean>
 
-
 	<bean id="channelFactroy" class="com.bbytes.jfilesync.jgroup.ChannelBeanFactory">
 		<property name="clusterName" value="jfilesync" />
-		<property name="port" value="${jgroups.port}" />
-		<property name="bindAddress" value="${jgroups.bindaddress}" />
-		<property name="gossipPort" value="${jgroups.gossip.port}" />
-		<property name="gossipBindAddress" value="${jgroups.gossip.bindaddress}" />
+		<property name="port" value="${file.sync.port}" />
+		<property name="gossipPort" value="${node.discovery.port}" />
+		<property name="gossipBindAddress" value="${node.discovery.host}" />
 	</bean>
-
 
 </beans>

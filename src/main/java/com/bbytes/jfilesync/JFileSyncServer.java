@@ -8,9 +8,6 @@ import java.util.concurrent.Executors;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.jgroups.JChannel;
-import org.jgroups.Message;
-import org.jgroups.ReceiverAdapter;
-import org.jgroups.View;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 

@@ -14,26 +14,26 @@
 		</property>
 	</bean>
 
-	
-	
 	<bean id="channelFactroy" class="com.bbytes.jfilesync.jgroup.ChannelBeanFactory">
 		<property name="clusterName" value="jfilesync" />
-		<property name="port" value="${jgroups.port}" />
-		<property name="bindAddress" value="${jgroups.bindaddress}" />
-		<property name="gossipPort" value="${jgroups.gossip.port}" />
-		<property name="gossipBindAddress" value="${jgroups.gossip.bindaddress}" />
+		<property name="port" value="${file.sync.port}" />
+		<property name="gossipPort" value="${node.discovery.port}" />
+		<property name="gossipBindAddress" value="${node.discovery.host}" />
 	</bean>
-	
-	<bean id="gossipServer" class="org.jgroups.stack.GossipRouter" init-method="start" destroy-method="stop">
-		<property name="port" value="${jgroups.gossip.port}" />
-		<property name="bindAddress" value="${jgroups.gossip.bindaddress}" />
+
+	<bean id="gossipServer" class="org.jgroups.stack.GossipRouter"
+		init-method="start" destroy-method="stop">
+		<property name="port" value="${node.discovery.port}" />
+		<property name="bindAddress" value="${node.discovery.host}" />
 	</bean>
-	
-	<bean id="fileMonitor" class="com.bbytes.jfilesync.sync.FileMonitor">
-		<property name="destFolderToMonitor" value="${monitor.folder.destination}" />
+
+	<bean id="fileMonitor" class="com.bbytes.jfilesync.sync.FileMonitor"
+		init-method="start" destroy-method="stop">
+		<property name="destFolderToMonitor" value="${sync.folder.destination}" />
 		<property name="intervalInSeconds" value="2" />
+		<property name="fileSyncChannel" ref="channelFactroy" />
 	</bean>
-	
-	<import resource="jetty-server.xml"/>
-	
+
+	<import resource="jetty-server.xml" />
+
 </beans>

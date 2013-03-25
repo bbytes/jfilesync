@@ -21,8 +21,6 @@ import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 
@@ -31,16 +29,18 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @version
  */
-public class FileMonitor implements FileAlterationListener, InitializingBean {
+public class FileMonitor implements FileAlterationListener {
+
+	private JChannel fileSyncChannel;
 
 	private String destFolderToMonitor;
 
 	private long intervalInSeconds = 5;
 
-	@Autowired
-	private JChannel fileSyncChannel;
+	private FileAlterationMonitor monitor;
 
-	public void afterPropertiesSet() throws Exception {
+	
+	public void start() throws Exception {
 		FileAlterationObserver observer = new FileAlterationObserver(destFolderToMonitor);
 		observer.addListener(this);
 		FileAlterationMonitor monitor = new FileAlterationMonitor(intervalInSeconds);
@@ -48,19 +48,20 @@ public class FileMonitor implements FileAlterationListener, InitializingBean {
 		monitor.start();
 	}
 
+	public void stop() throws Exception {
+		monitor.stop();
+	}
+
 	public void onDirectoryChange(File file) {
 		System.out.println("onDirectoryChange : " + file);
-
-		
-
 	}
 
 	public void onDirectoryCreate(File file) {
 		System.out.println("onDirectoryCreate : " + file);
 		try {
-			String filePath= file.getPath();
+			String filePath = file.getPath();
 			filePath.replace(destFolderToMonitor, "");
-//			URL url = new URL(file.getPath());
+			// URL url = new URL(file.getPath());
 			FileSyncMessage fileSyncMessage = new FileSyncMessage(FileMessageType.FILE_CREATED, null, file.getName());
 			fileSyncMessage.setDirectory(true);
 			fileSyncChannel.send(new Message(null, null, fileSyncMessage));
@@ -82,16 +83,17 @@ public class FileMonitor implements FileAlterationListener, InitializingBean {
 	public void onFileCreate(File file) {
 		System.out.println("onFileCreate : " + file);
 		try {
-			
-			String filePath= file.toURI().toString();
+
+			String filePath = file.toURI().toString();
 			File desFolder = new File(destFolderToMonitor);
-			String destFilePath= desFolder.toURI().toString();
+			String destFilePath = desFolder.toURI().toString();
 			System.out.println(destFilePath);
 			System.out.println(filePath);
-			filePath =filePath.replace(desFolder.toURI().toString(), "");
-			
-			URL fileDownloadURL = new URL("http://localhost:8090/"+filePath);
-			FileSyncMessage fileSyncMessage = new FileSyncMessage(FileMessageType.FILE_CREATED, fileDownloadURL, file.getName());
+			filePath = filePath.replace(desFolder.toURI().toString(), "");
+
+			URL fileDownloadURL = new URL("http://localhost:8090/" + filePath);
+			FileSyncMessage fileSyncMessage = new FileSyncMessage(FileMessageType.FILE_CREATED, fileDownloadURL,
+					file.getName());
 			fileSyncChannel.send(new Message(null, null, fileSyncMessage));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -104,12 +106,12 @@ public class FileMonitor implements FileAlterationListener, InitializingBean {
 	}
 
 	public void onStart(FileAlterationObserver file) {
-//		System.out.println("onStart !!!!!");
+		// System.out.println("onStart !!!!!");
 
 	}
 
 	public void onStop(FileAlterationObserver file) {
-//		System.out.println("onStop !!!!!");
+		// System.out.println("onStop !!!!!");
 	}
 
 	/**
@@ -120,7 +122,8 @@ public class FileMonitor implements FileAlterationListener, InitializingBean {
 	}
 
 	/**
-	 * @param destFolderToMonitor the destFolderToMonitor to set
+	 * @param destFolderToMonitor
+	 *            the destFolderToMonitor to set
 	 */
 	public void setDestFolderToMonitor(String destFolderToMonitor) {
 		this.destFolderToMonitor = destFolderToMonitor;
@@ -134,10 +137,25 @@ public class FileMonitor implements FileAlterationListener, InitializingBean {
 	}
 
 	/**
-	 * @param intervalInSeconds the intervalInSeconds to set
+	 * @param intervalInSeconds
+	 *            the intervalInSeconds to set
 	 */
 	public void setIntervalInSeconds(long intervalInSeconds) {
 		this.intervalInSeconds = intervalInSeconds;
 	}
 
+	/**
+	 * @return the fileSyncChannel
+	 */
+	public JChannel getFileSyncChannel() {
+		return fileSyncChannel;
+	}
+
+	/**
+	 * @param fileSyncChannel
+	 *            the fileSyncChannel to set
+	 */
+	public void setFileSyncChannel(JChannel fileSyncChannel) {
+		this.fileSyncChannel = fileSyncChannel;
+	}
 }
