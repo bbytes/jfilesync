@@ -13,9 +13,10 @@
  */
 package com.bbytes.jfilesync;
 
-import org.jgroups.Channel;
+import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
+import org.jgroups.View;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +31,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @version
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:spring/applicationContext.xml" })
+@ContextConfiguration(locations = { "classpath:spring/jfilesync-client.xml" })
 public class RecieveMessageTest {
 
 	@Autowired
-	Channel channel;
+	JChannel channel;
 
 	@Test
 	public void testSend() throws  InterruptedException {
@@ -42,6 +43,12 @@ public class RecieveMessageTest {
 			public void receive(Message msg) {
 				System.out.println("received msg from " + msg.getSrc() + ": " + msg.getObject());
 			}
+			
+			public void viewAccepted(View view) {
+				System.out.println("new client joined " +view.toString());
+				
+		    }
+			
 		});
 		Thread.currentThread().sleep(200000);
 		channel.close();

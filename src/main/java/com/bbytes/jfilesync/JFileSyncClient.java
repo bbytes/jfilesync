@@ -13,17 +13,15 @@
  */
 package com.bbytes.jfilesync;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.jgroups.Channel;
-import org.jgroups.Message;
+import org.jgroups.JChannel;
 import org.jgroups.ReceiverAdapter;
-import org.jgroups.View;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
 
 /**
  * 
@@ -36,20 +34,21 @@ public class JFileSyncClient extends ReceiverAdapter {
 
 	private ApplicationContext context;
 
-	private Channel fileSyncChannel;
+	private JChannel fileSyncChannel;
 
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	JFileSyncClientThread clientThread = new JFileSyncClientThread();
+	private JFileSyncListenerThread fileSyncListenerThread;
 
 	public JFileSyncClient() throws Exception {
-		this.context = new ClassPathXmlApplicationContext("classpath:spring/applicationContext.xml");
-		fileSyncChannel = context.getBean(Channel.class);
+		this.context = new ClassPathXmlApplicationContext("classpath:spring/jfilesync-client.xml");
+		fileSyncChannel = context.getBean(JChannel.class);
+		fileSyncListenerThread = new JFileSyncListenerThread(fileSyncChannel);
 	}
 
 	public void start() throws Exception {
 		addShutDownHook();
-		executor.submit(clientThread);
+		executor.submit(fileSyncListenerThread);
 	}
 
 	/**
@@ -66,42 +65,8 @@ public class JFileSyncClient extends ReceiverAdapter {
 	}
 
 	public void shutDown() {
-		clientThread.shutDown();
+		fileSyncListenerThread.shutDown();
 		executor.shutdown();
 	}
 
-	public class JFileSyncClientThread implements Callable<Boolean> {
-
-		private final CountDownLatch latch = new CountDownLatch(1);
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.util.concurrent.Callable#call()
-		 */
-		public Boolean call() throws Exception {
-
-			fileSyncChannel.setReceiver(new ReceiverAdapter() {
-				public void receive(Message msg) {
-					System.out.println("received msg from " + msg.getSrc() + ": " + msg.getObject());
-				}
-
-				public void viewAccepted(View newView) {
-					System.out.println("received new view " + newView.toString());
-				}
-
-			});
-
-			latch.await();
-
-			return true;
-
-		}
-
-		public void shutDown() {
-			fileSyncChannel.disconnect();
-			latch.countDown();
-		}
-
-	}
 }

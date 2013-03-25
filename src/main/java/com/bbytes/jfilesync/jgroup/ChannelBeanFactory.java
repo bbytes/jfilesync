@@ -17,7 +17,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jgroups.Channel;
 import org.jgroups.JChannel;
 import org.jgroups.protocols.FD;
 import org.jgroups.protocols.MERGE2;
@@ -41,11 +40,10 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements DisposableBean {
 
 	private String clusterName;
-	private String port;
+	private int port;
 	private String bindAddress;
 	private int gossipPort;
 	private String gossipBindAddress;
-	
 
 	/**
 	 * @return the clusterName
@@ -65,14 +63,15 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	/**
 	 * @return the port
 	 */
-	public String getPort() {
+	public int getPort() {
 		return port;
 	}
 
 	/**
-	 * @param port the port to set
+	 * @param port
+	 *            the port to set
 	 */
-	public void setPort(String port) {
+	public void setPort(int port) {
 		this.port = port;
 	}
 
@@ -84,7 +83,8 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	}
 
 	/**
-	 * @param bindAddress the bindAddress to set
+	 * @param bindAddress
+	 *            the bindAddress to set
 	 */
 	public void setBindAddress(String bindAddress) {
 		this.bindAddress = bindAddress;
@@ -98,7 +98,8 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	}
 
 	/**
-	 * @param gossipPort the gossipPort to set
+	 * @param gossipPort
+	 *            the gossipPort to set
 	 */
 	public void setGossipPort(int gossipPort) {
 		this.gossipPort = gossipPort;
@@ -112,14 +113,15 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	}
 
 	/**
-	 * @param gossipBindAddress the gossipBindAddress to set
+	 * @param gossipBindAddress
+	 *            the gossipBindAddress to set
 	 */
 	public void setGossipBindAddress(String gossipBindAddress) {
 		this.gossipBindAddress = gossipBindAddress;
 	}
 
-	public Class<Channel> getObjectType() {
-		return Channel.class;
+	public Class<JChannel> getObjectType() {
+		return JChannel.class;
 	}
 
 	protected JChannel createInstance() throws Exception {
@@ -130,13 +132,15 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 		// return jChannel;
 		TCPGOSSIP gossip = new TCPGOSSIP();
 		List<InetSocketAddress> initial_hosts = new ArrayList<InetSocketAddress>();
-		initial_hosts.add(new InetSocketAddress(gossipBindAddress,gossipPort));
+		initial_hosts.add(new InetSocketAddress(gossipBindAddress, gossipPort));
 		gossip.setInitialHosts(initial_hosts);
 
-		JChannel channel = new JChannel(new TCP().setValue("use_send_queues", true).setValue("sock_conn_timeout", 300),
-				gossip, new MERGE2().setValue("min_interval", 1000).setValue("max_interval", 3000), new FD().setValue(
-						"timeout", 2000).setValue("max_tries", 2), new VERIFY_SUSPECT(), new NAKACK2().setValue(
-						"use_mcast_xmit", false), new UNICAST2(), new STABLE(), new GMS());
+		JChannel channel = new JChannel(new TCP().setValue("use_send_queues", true).setValue("sock_conn_timeout", 300)
+				.setValue("bind_port",port), gossip, new MERGE2()
+				.setValue("min_interval", 1000).setValue("max_interval", 3000), new FD().setValue("timeout", 2000)
+				.setValue("max_tries", 2), new VERIFY_SUSPECT(), new NAKACK2().setValue("use_mcast_xmit", false),
+				new UNICAST2(), new STABLE(), new GMS());
+		channel.connect(clusterName);
 		return channel;
 	}
 

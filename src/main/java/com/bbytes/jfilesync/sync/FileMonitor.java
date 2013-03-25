@@ -16,11 +16,10 @@ package com.bbytes.jfilesync.sync;
 import java.io.File;
 import java.net.URL;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
-import org.jgroups.Channel;
+import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,7 @@ public class FileMonitor implements FileAlterationListener, InitializingBean {
 	private long intervalInSeconds = 5;
 
 	@Autowired
-	private Channel fileSyncChannel;
+	private JChannel fileSyncChannel;
 
 	public void afterPropertiesSet() throws Exception {
 		FileAlterationObserver observer = new FileAlterationObserver(destFolderToMonitor);

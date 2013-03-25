@@ -36,13 +36,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @version 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:spring/applicationContext.xml" })
-public class FileMonitorTest {
+@ContextConfiguration(locations = { "classpath:spring/jfilesync-server.xml" })
+public class FileMonitorServerTest {
 
 	
 	@Test
 	public void startMonitor() throws InterruptedException {
-		System.out.println("context file start the montior");
+		System.out.println("File monitor server started...");
 		Thread.currentThread().sleep(100000);
 	}
 

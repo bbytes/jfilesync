@@ -13,7 +13,7 @@
  */
 package com.bbytes.jfilesync;
 
-import org.jgroups.Channel;
+import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,11 +29,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @version
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:spring/applicationContext.xml" })
+@ContextConfiguration(locations = { "classpath:spring/jfilesync-client.xml" })
 public class SendMessageTest {
 
 	@Autowired
-	Channel channel;
+	JChannel channel;
 
 	@Test
 	public void testSend() throws Exception {
