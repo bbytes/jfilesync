@@ -14,6 +14,11 @@
 		</property>
 	</bean>
 
+	<bean id="gossipServer" class="org.jgroups.stack.GossipRouter">
+		<property name="port" value="${jgroups.gossip.port}" />
+		<property name="bindAddress" value="${jgroups.gossip.bindaddress}" />
+	</bean>
+
 	<bean id="Server" class="org.eclipse.jetty.server.Server"
 		destroy-method="stop">
 

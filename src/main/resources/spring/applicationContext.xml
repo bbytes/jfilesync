@@ -14,24 +14,16 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
 
 	<bean id="channelFactroy" class="com.bbytes.jfilesync.jgroup.ChannelBeanFactory">
-		
 		<property name="clusterName" value="jfilesync" />
 		<property name="port" value="${server.port}" />
 		<property name="bindAddress" value="${server.host}" />
 		<property name="gossipPort" value="${jgroups.gossip.port}" />
 		<property name="gossipBindAddress" value="${jgroups.gossip.bindaddress}" />
-		
-
 	</bean>
 
 	<bean id="fileMonitor" class="com.bbytes.jfilesync.sync.FileMonitor">
 		<property name="destFolderToMonitor" value="${monitor.folder.destination}" />
 		<property name="intervalInSeconds" value="2" />
-	</bean>
-
-	<bean id="gossipServer" class="org.jgroups.stack.GossipRouter" init-method="start" destroy-method="stop">
-		<property name="port" value="${jgroups.gossip.port}" />
-		<property name="bindAddress" value="${jgroups.gossip.bindaddress}" />
 	</bean>
 
 

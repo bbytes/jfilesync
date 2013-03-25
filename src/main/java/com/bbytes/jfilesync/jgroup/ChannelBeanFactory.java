@@ -43,7 +43,7 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	private String clusterName;
 	private String port;
 	private String bindAddress;
-	private String gossipPort;
+	private int gossipPort;
 	private String gossipBindAddress;
 	
 
@@ -93,14 +93,14 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	/**
 	 * @return the gossipPort
 	 */
-	public String getGossipPort() {
+	public int getGossipPort() {
 		return gossipPort;
 	}
 
 	/**
 	 * @param gossipPort the gossipPort to set
 	 */
-	public void setGossipPort(String gossipPort) {
+	public void setGossipPort(int gossipPort) {
 		this.gossipPort = gossipPort;
 	}
 
@@ -130,7 +130,7 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 		// return jChannel;
 		TCPGOSSIP gossip = new TCPGOSSIP();
 		List<InetSocketAddress> initial_hosts = new ArrayList<InetSocketAddress>();
-		initial_hosts.add(new InetSocketAddress(5559));
+		initial_hosts.add(new InetSocketAddress(gossipBindAddress,gossipPort));
 		gossip.setInitialHosts(initial_hosts);
 
 		JChannel channel = new JChannel(new TCP().setValue("use_send_queues", true).setValue("sock_conn_timeout", 300),
