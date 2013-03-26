@@ -77,27 +77,14 @@ public class JFileSyncListenerThread implements Callable<Boolean> {
 					if (fileSyncMessage != null) {
 						switch (fileSyncMessage.getFileMessageType()) {
 						case FILE_CREATED:
-							if (!fileSyncMessage.isDirectory()) {
-								try {
-									FileUtils.copyURLToFile(fileSyncMessage.getFileUrl().toURL(), new File(
-											destinationFolder + File.separator + fileSyncMessage.getFileName()), 20000,
-											20000);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}
+							fileModified(fileSyncMessage);
 							break;
 						case FILE_DELETED:
 							FileUtils.deleteQuietly(new File(destinationFolder + File.separator
 									+ fileSyncMessage.getFileName()));
 							break;
 						case FILE_UPDATED:
-							try {
-								FileUtils.copyDirectory(new File(fileSyncMessage.getFileUrl()), new File(
-										destinationFolder + File.separator + fileSyncMessage.getFileName()));
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
+							fileModified(fileSyncMessage);
 							break;
 
 						default:
@@ -121,6 +108,17 @@ public class JFileSyncListenerThread implements Callable<Boolean> {
 
 	}
 
+	private void fileModified(FileSyncMessage fileSyncMessage){
+		if (!fileSyncMessage.isDirectory()) {
+			try {
+				FileUtils.copyURLToFile(fileSyncMessage.getFileUrl().toURL(), new File(
+						destinationFolder + File.separator + fileSyncMessage.getFileName()), 20000,
+						20000);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	/**
 	 * Close all service started by thread and release the wait lock on the caller thread
 	 */
