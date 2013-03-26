@@ -34,7 +34,7 @@
 									<value>index.html</value>
 								</list>
 							</property>
-							<property name="resourceBase" value="${sync.folder.destination}" />
+							<property name="resourceBase" value="${sync.folder.source}" />
 						</bean>
 						<bean class="org.eclipse.jetty.server.handler.DefaultHandler" />
 					</list>

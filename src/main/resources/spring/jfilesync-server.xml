@@ -29,7 +29,7 @@
 
 	<bean id="fileMonitor" class="com.bbytes.jfilesync.sync.FileMonitor"
 		init-method="start" destroy-method="stop">
-		<property name="destFolderToMonitor" value="${sync.folder.destination}" />
+		<property name="destFolderToMonitor" value="${sync.folder.source}" />
 		<property name="intervalInSeconds" value="2" />
 		<property name="fileSyncChannel" ref="channelFactroy" />
 	</bean>

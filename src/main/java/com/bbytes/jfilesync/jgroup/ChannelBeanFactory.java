@@ -31,7 +31,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
- * 
+ * This is the jgroup channel for new node discovery and for file event transmission to all nodes.
+ * Gossip protocol is used for new node discovery
  * 
  * @author Thanneer
  * 
@@ -52,6 +53,7 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	}
 
 	/**
+	 * The cluster name for the file sync nodes
 	 * @param clusterName
 	 *            the clusterName to set
 	 */
@@ -73,7 +75,6 @@ public class ChannelBeanFactory extends AbstractFactoryBean<JChannel> implements
 	public void setPort(int port) {
 		this.port = port;
 	}
-
 
 	/**
 	 * @return the gossipPort

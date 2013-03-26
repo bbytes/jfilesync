@@ -14,7 +14,7 @@
 package com.bbytes.jfilesync.sync;
 
 import java.io.File;
-import java.net.URL;
+import java.net.URI;
 
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
@@ -58,17 +58,6 @@ public class FileMonitor implements FileAlterationListener {
 
 	public void onDirectoryCreate(File file) {
 		System.out.println("onDirectoryCreate : " + file);
-		try {
-			String filePath = file.getPath();
-			filePath.replace(destFolderToMonitor, "");
-			// URL url = new URL(file.getPath());
-			FileSyncMessage fileSyncMessage = new FileSyncMessage(FileMessageType.FILE_CREATED, null, file.getName());
-			fileSyncMessage.setDirectory(true);
-			fileSyncChannel.send(new Message(null, null, fileSyncMessage));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	public void onDirectoryDelete(File file) {
@@ -90,8 +79,7 @@ public class FileMonitor implements FileAlterationListener {
 			System.out.println(destFilePath);
 			System.out.println(filePath);
 			filePath = filePath.replace(desFolder.toURI().toString(), "");
-
-			URL fileDownloadURL = new URL("http://localhost:8090/" + filePath);
+			URI fileDownloadURL = new URI("http://localhost:8090/" + filePath);
 			FileSyncMessage fileSyncMessage = new FileSyncMessage(FileMessageType.FILE_CREATED, fileDownloadURL,
 					file.getName());
 			fileSyncChannel.send(new Message(null, null, fileSyncMessage));

@@ -16,7 +16,7 @@
 package com.bbytes.jfilesync.sync;
 
 /**
- * 
+ * The file states that is broadcasted to client file state listeners
  *
  * @author Thanneer
  *

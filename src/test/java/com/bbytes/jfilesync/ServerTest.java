@@ -32,7 +32,7 @@ public class ServerTest {
 	public void testClient() throws Exception {
 		JFileSyncServer server = new JFileSyncServer();
 		server.start();
-		Thread.currentThread().sleep(20000);
+		Thread.currentThread().sleep(200000);
 		server.shutDown();
 	}
 	

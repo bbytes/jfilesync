@@ -19,4 +19,9 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 		<property name="gossipBindAddress" value="${node.discovery.host}" />
 	</bean>
 
+
+	<bean id="destinationFolder" class="java.lang.String">
+		<constructor-arg value="${sync.folder.destination}" />
+	</bean>
+
 </beans>

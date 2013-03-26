@@ -14,10 +14,10 @@
 package com.bbytes.jfilesync.sync;
 
 import java.io.Serializable;
-import java.net.URL;
+import java.net.URI;
 
 /**
- * 
+ * The file events are sent as file sync messages to client nodes
  * 
  * @author Thanneer
  * 
@@ -29,13 +29,13 @@ public class FileSyncMessage implements Serializable{
 
 	private FileMessageType fileMessageType;
 
-	private URL fileUrl;
+	private URI fileUrl;
 
 	private String fileName;
 
 	private boolean isDirectory = false;
 
-	public FileSyncMessage(FileMessageType fileMessageType, URL fileUrl, String fileName) {
+	public FileSyncMessage(FileMessageType fileMessageType, URI fileUrl, String fileName) {
 		this.fileMessageType = fileMessageType;
 		this.fileUrl = fileUrl;
 		this.fileName = fileName;
@@ -59,7 +59,7 @@ public class FileSyncMessage implements Serializable{
 	/**
 	 * @return the fileUrl
 	 */
-	public URL getFileUrl() {
+	public URI getFileUrl() {
 		return fileUrl;
 	}
 
@@ -67,7 +67,7 @@ public class FileSyncMessage implements Serializable{
 	 * @param fileUrl
 	 *            the fileUrl to set
 	 */
-	public void setFileUrl(URL fileUrl) {
+	public void setFileUrl(URI fileUrl) {
 		this.fileUrl = fileUrl;
 	}
 

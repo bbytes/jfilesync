@@ -23,7 +23,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
 
 /**
- * 
+ * The file sync client which listens to file modification messages and modifies the destination folder
  * 
  * @author Thanneer
  * 
@@ -38,11 +38,16 @@ public class JFileSyncClient {
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	private JFileSyncListenerThread fileSyncListenerThread;
+	
+	private String destinationFolder;
 
 	public JFileSyncClient() throws Exception {
 		this.context = new ClassPathXmlApplicationContext("classpath:spring/jfilesync-client.xml");
 		fileSyncChannel = context.getBean(JChannel.class);
+		destinationFolder= (String) context.getBean("destinationFolder");
 		fileSyncListenerThread = new JFileSyncListenerThread(fileSyncChannel);
+		fileSyncListenerThread.setDestinationFolder(destinationFolder);
+		fileSyncListenerThread.setMode("client");
 	}
 
 	public void start() throws Exception {
@@ -51,7 +56,7 @@ public class JFileSyncClient {
 	}
 
 	/**
-	 * 
+	 * Add shutdown hook to the client
 	 */
 	private void addShutDownHook() {
 		// shutdown event
@@ -63,6 +68,9 @@ public class JFileSyncClient {
 
 	}
 
+	/**
+	 * Close all resource in client 
+	 */
 	public void shutDown() {
 		fileSyncListenerThread.shutDown();
 		executor.shutdown();
