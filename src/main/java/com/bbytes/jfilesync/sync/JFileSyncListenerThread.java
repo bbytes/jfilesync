@@ -16,6 +16,7 @@ package com.bbytes.jfilesync.sync;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.log4j.Logger;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
@@ -30,6 +31,8 @@ import org.jgroups.View;
  */
 public class JFileSyncListenerThread implements Callable<Boolean> {
 
+	private static final Logger log = Logger.getLogger(JFileSyncListenerThread.class);
+	
 	private final CountDownLatch latch = new CountDownLatch(1);
 
 	private JChannel fileSyncChannel;
@@ -54,11 +57,11 @@ public class JFileSyncListenerThread implements Callable<Boolean> {
 
 		fileSyncChannel.setReceiver(new ReceiverAdapter() {
 			public void receive(Message msg) {
-				System.out.println("received msg from " + msg.getSrc() + ": " + msg.getObject());
+				log.debug("received msg from " + msg.getSrc() + ": " + msg.getObject());
 			}
 
 			public void viewAccepted(View newView) {
-				System.out.println("received new view " + newView.toString());
+				log.debug("received new view " + newView.toString());
 			}
 
 		});

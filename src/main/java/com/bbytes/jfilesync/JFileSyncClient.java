@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jgroups.JChannel;
-import org.jgroups.ReceiverAdapter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -30,7 +29,7 @@ import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
  * 
  * @version
  */
-public class JFileSyncClient extends ReceiverAdapter {
+public class JFileSyncClient {
 
 	private ApplicationContext context;
 

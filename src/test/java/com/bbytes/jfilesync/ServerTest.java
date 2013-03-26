@@ -22,18 +22,18 @@ import org.junit.Test;
  * 
  * @version
  */
-public class ClientTest {
+public class ServerTest {
 
 	/**
-	 * Test client start and stop 
+	 * Test start and stop of server..give 20secs for server start time
 	 * @throws Exception
 	 */
 	@Test
 	public void testClient() throws Exception {
-		JFileSyncClient client = new JFileSyncClient();
-		client.start();
-		Thread.currentThread().sleep(5000);
-		client.shutDown();
+		JFileSyncServer server = new JFileSyncServer();
+		server.start();
+		Thread.currentThread().sleep(20000);
+		server.shutDown();
 	}
 	
 	

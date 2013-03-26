@@ -1,7 +1,5 @@
 package com.bbytes.jfilesync;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,21 +17,34 @@ public class JFileSyncServer {
 
 	private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	private static JFileSyncListenerThread fileSyncListenerThread;
+	private JFileSyncListenerThread fileSyncListenerThread;
 
-	private static Server server;
+	private Server server;
 
-	private static JChannel fileSyncChannel;
+	private JChannel fileSyncChannel;
 
 	// private static final String IDE_WAR_LOCATION = "src/main/resources/webapp";
 
-	public static void main(String[] args) {
+	public void start() {
+
 		ApplicationContext appContext = new ClassPathXmlApplicationContext("classpath:spring/jfilesync-server.xml");
 		fileSyncChannel = appContext.getBean(JChannel.class);
 		server = appContext.getBean(Server.class);
 		fileSyncListenerThread = new JFileSyncListenerThread(fileSyncChannel, false);
+
+		// add shutdown hook
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				try {
+					shutDown();
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+		});
+
 		try {
-			boolean status = executor.submit(fileSyncListenerThread).get();
+			executor.submit(fileSyncListenerThread).get();
 
 			// to server jsp files we need to set this web context else ignore
 			// WebAppContext webAppContext = new WebAppContext();
@@ -45,31 +56,17 @@ public class JFileSyncServer {
 			server.start();
 			server.join();
 
-			System.out.println("Zorba web server running....");
-			System.out.println("Enter :q and hit enter to quit: ");
-			while (true) {
-
-				BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
-				String str = bufferRead.readLine();
-				if (str != null && !str.isEmpty())
-					if (str.trim().equals(":q")) {
-						System.out.println("exiting system...");
-						shutDown();
-						break;
-					}
-				Thread.sleep(1000);
-			}
-
+			logger.debug("JFile Sync server started....");
 		} catch (Exception e) {
-			logger.error("Error when starting", e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 
-	public static void shutDown() throws Exception {
+	public void shutDown() throws Exception {
+		logger.debug("JFile Sync server shutting down....");
 		fileSyncChannel.disconnect();
 		fileSyncListenerThread.shutDown();
 		executor.shutdown();
 		server.stop();
-		System.exit(0);
 	}
 }
