@@ -1,23 +1,24 @@
 package com.bbytes.jfilesync;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.jgroups.JChannel;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.support.ResourcePropertySource;
 
 import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
 
 /**
- * The file sync server which sends out file modification messages to client based on modification is source folder
+ * The file sync server which sends out file modification messages to client based on modification
+ * is source folder
  * 
- *
+ * 
  * @author Thanneer
- *
+ * 
  * @version
  */
 public class JFileSyncServer {
@@ -32,13 +33,24 @@ public class JFileSyncServer {
 
 	private JChannel fileSyncChannel;
 
+	private ClassPathXmlApplicationContext context;
+
 	// private static final String IDE_WAR_LOCATION = "src/main/resources/webapp";
 
 	public void start() {
 
-		ApplicationContext appContext = new ClassPathXmlApplicationContext("classpath:spring/jfilesync-server.xml");
-		fileSyncChannel = appContext.getBean(JChannel.class);
-		server = appContext.getBean(Server.class);
+		this.context = new ClassPathXmlApplicationContext(new String[] {"classpath:spring/jfilesync-server.xml" },
+				false);
+		try {
+			this.context.getEnvironment().getPropertySources()
+					.addFirst(new ResourcePropertySource("classpath:jfilesync-server.properties"));
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
+		this.context.refresh();
+
+		fileSyncChannel = this.context.getBean(JChannel.class);
+		server = this.context.getBean(Server.class);
 		fileSyncListenerThread = new JFileSyncListenerThread(fileSyncChannel, false);
 		fileSyncListenerThread.setMode("server");
 
@@ -73,7 +85,7 @@ public class JFileSyncServer {
 	}
 
 	/**
-	 * Close all resource in server 
+	 * Close all resource in server
 	 */
 	public void shutDown() throws Exception {
 		logger.debug("JFile Sync server shutting down....");
@@ -81,5 +93,11 @@ public class JFileSyncServer {
 		fileSyncListenerThread.shutDown();
 		executor.shutdown();
 		server.stop();
+		this.context.destroy();
+	}
+
+	public static void main(String[] args) {
+		JFileSyncServer jFileSyncServer = new JFileSyncServer();
+		jFileSyncServer.start();
 	}
 }

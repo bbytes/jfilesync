@@ -50,7 +50,7 @@ public class RecieveMessageTest {
 		    }
 			
 		});
-		Thread.currentThread().sleep(200000);
+		Thread.currentThread().sleep(2000);
 		channel.close();
 	}
 }

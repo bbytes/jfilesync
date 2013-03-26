@@ -16,20 +16,20 @@ package com.bbytes.jfilesync.sync;
 import java.io.File;
 import java.net.URI;
 
-import org.apache.commons.io.monitor.FileAlterationListener;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 
 /**
- * 
+ * Monitors the source file for modification anf fires file messages
  * 
  * @author Thanneer
  * 
  * @version
  */
-public class FileMonitor implements FileAlterationListener {
+public class FileMonitor extends FileAlterationListenerAdaptor {
 
 	private JChannel fileSyncChannel;
 
@@ -38,8 +38,9 @@ public class FileMonitor implements FileAlterationListener {
 	private long intervalInSeconds = 5;
 
 	private FileAlterationMonitor monitor;
-
 	
+	private String serverUrl; 
+
 	public void start() throws Exception {
 		FileAlterationObserver observer = new FileAlterationObserver(destFolderToMonitor);
 		observer.addListener(this);
@@ -52,54 +53,30 @@ public class FileMonitor implements FileAlterationListener {
 		monitor.stop();
 	}
 
-	public void onDirectoryChange(File file) {
-		System.out.println("onDirectoryChange : " + file);
-	}
-
-	public void onDirectoryCreate(File file) {
-		System.out.println("onDirectoryCreate : " + file);
-	}
-
-	public void onDirectoryDelete(File file) {
-		System.out.println("onDirectoryDelete : " + file);
-	}
-
 	public void onFileChange(File file) {
-		System.out.println("onFileChange : " + file);
-
+		fileModified(file,FileMessageType.FILE_UPDATED);
 	}
 
 	public void onFileCreate(File file) {
-		System.out.println("onFileCreate : " + file);
-		try {
+		fileModified(file,FileMessageType.FILE_CREATED);
+	}
 
+	public void onFileDelete(File file) {
+		fileModified(file,FileMessageType.FILE_DELETED);
+	}
+
+	private void fileModified(File file,FileMessageType fileMessageType) {
+		try {
 			String filePath = file.toURI().toString();
 			File desFolder = new File(destFolderToMonitor);
-			String destFilePath = desFolder.toURI().toString();
-			System.out.println(destFilePath);
-			System.out.println(filePath);
 			filePath = filePath.replace(desFolder.toURI().toString(), "");
-			URI fileDownloadURL = new URI("http://localhost:8090/" + filePath);
-			FileSyncMessage fileSyncMessage = new FileSyncMessage(FileMessageType.FILE_CREATED, fileDownloadURL,
+			URI fileDownloadURL = new URI(serverUrl + filePath);
+			FileSyncMessage fileSyncMessage = new FileSyncMessage(fileMessageType, fileDownloadURL,
 					file.getName());
 			fileSyncChannel.send(new Message(null, null, fileSyncMessage));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void onFileDelete(File file) {
-		System.out.println("onFileDelete : " + file);
-
-	}
-
-	public void onStart(FileAlterationObserver file) {
-		// System.out.println("onStart !!!!!");
-
-	}
-
-	public void onStop(FileAlterationObserver file) {
-		// System.out.println("onStop !!!!!");
 	}
 
 	/**
@@ -146,4 +123,19 @@ public class FileMonitor implements FileAlterationListener {
 	public void setFileSyncChannel(JChannel fileSyncChannel) {
 		this.fileSyncChannel = fileSyncChannel;
 	}
+
+	/**
+	 * @return the serverUrl
+	 */
+	public String getServerUrl() {
+		return serverUrl;
+	}
+
+	/**
+	 * @param serverUrl the serverUrl to set
+	 */
+	public void setServerUrl(String serverUrl) {
+		this.serverUrl = serverUrl;
+	}
+
 }

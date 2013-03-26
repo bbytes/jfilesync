@@ -4,7 +4,7 @@
 http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
 	<bean
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
 		<property name="locations">
 			<list>
 				<value>classpath:jfilesync.properties</value>

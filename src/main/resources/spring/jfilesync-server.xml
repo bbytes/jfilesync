@@ -6,7 +6,7 @@
 
 
 	<bean
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
 		<property name="locations">
 			<list>
 				<value>classpath:jfilesync.properties</value>
@@ -32,6 +32,8 @@
 		<property name="destFolderToMonitor" value="${sync.folder.source}" />
 		<property name="intervalInSeconds" value="2" />
 		<property name="fileSyncChannel" ref="channelFactroy" />
+		<property name="serverUrl"
+			value="http://${file.web.server.host}:${file.web.server.port}/" />
 	</bean>
 
 	<import resource="jetty-server.xml" />

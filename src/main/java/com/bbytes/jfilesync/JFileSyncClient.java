@@ -13,17 +13,20 @@
  */
 package com.bbytes.jfilesync;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
 import org.jgroups.JChannel;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.support.ResourcePropertySource;
 
 import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
 
 /**
- * The file sync client which listens to file modification messages and modifies the destination folder
+ * The file sync client which listens to file modification messages and modifies the destination
+ * folder
  * 
  * @author Thanneer
  * 
@@ -31,26 +34,36 @@ import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
  */
 public class JFileSyncClient {
 
-	private ApplicationContext context;
+	private static final Logger log = Logger.getLogger(JFileSyncClient.class);
+	
+	private ClassPathXmlApplicationContext context;
 
 	private JChannel fileSyncChannel;
 
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	private JFileSyncListenerThread fileSyncListenerThread;
-	
+
 	private String destinationFolder;
 
-	public JFileSyncClient() throws Exception {
-		this.context = new ClassPathXmlApplicationContext("classpath:spring/jfilesync-client.xml");
+	public JFileSyncClient() {
+		this.context = new ClassPathXmlApplicationContext(new String[] { "classpath:spring/jfilesync-client.xml" },
+				false);
+		try {
+			context.getEnvironment().getPropertySources()
+					.addFirst(new ResourcePropertySource("classpath:jfilesync-client.properties"));
+		} catch (IOException e) {
+			log.error(e.getMessage(),e);
+		}
+		this.context.refresh();
 		fileSyncChannel = context.getBean(JChannel.class);
-		destinationFolder= (String) context.getBean("destinationFolder");
+		destinationFolder = (String) context.getBean("destinationFolder");
 		fileSyncListenerThread = new JFileSyncListenerThread(fileSyncChannel);
 		fileSyncListenerThread.setDestinationFolder(destinationFolder);
 		fileSyncListenerThread.setMode("client");
 	}
 
-	public void start() throws Exception {
+	public void start() {
 		addShutDownHook();
 		executor.submit(fileSyncListenerThread);
 	}
@@ -69,11 +82,17 @@ public class JFileSyncClient {
 	}
 
 	/**
-	 * Close all resource in client 
+	 * Close all resource in client
 	 */
 	public void shutDown() {
 		fileSyncListenerThread.shutDown();
 		executor.shutdown();
+	}
+
+	public static void main(String[] args) {
+		JFileSyncClient client = new JFileSyncClient();
+		client.start();
+
 	}
 
 }
