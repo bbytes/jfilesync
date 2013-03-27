@@ -10,7 +10,7 @@ import org.jgroups.JChannel;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.support.ResourcePropertySource;
 
-import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
+import com.bbytes.jfilesync.sync.JFileSyncListenerServerThread;
 
 /**
  * The file sync server which sends out file modification messages to client based on modification
@@ -27,7 +27,7 @@ public class JFileSyncServer {
 
 	private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	private JFileSyncListenerThread fileSyncListenerThread;
+	private JFileSyncListenerServerThread fileSyncListenerThread;
 
 	private Server server;
 
@@ -39,7 +39,7 @@ public class JFileSyncServer {
 
 	public void start() {
 
-		this.context = new ClassPathXmlApplicationContext(new String[] {"classpath:spring/jfilesync-server.xml" },
+		this.context = new ClassPathXmlApplicationContext(new String[] { "classpath:spring/jfilesync-server.xml" },
 				false);
 		try {
 			this.context.getEnvironment().getPropertySources()
@@ -51,8 +51,7 @@ public class JFileSyncServer {
 
 		fileSyncChannel = this.context.getBean(JChannel.class);
 		server = this.context.getBean(Server.class);
-		fileSyncListenerThread = new JFileSyncListenerThread(fileSyncChannel, false);
-		fileSyncListenerThread.setMode("server");
+		fileSyncListenerThread = new JFileSyncListenerServerThread(fileSyncChannel);
 
 		// add shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -66,6 +65,7 @@ public class JFileSyncServer {
 		});
 
 		try {
+			// call get() to make the thread finish the Callable call method
 			executor.submit(fileSyncListenerThread).get();
 
 			// to server jsp files we need to set this web context else ignore

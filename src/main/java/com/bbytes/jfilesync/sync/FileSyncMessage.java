@@ -23,7 +23,7 @@ import java.net.URI;
  * 
  * @version
  */
-public class FileSyncMessage implements Serializable{
+public class FileSyncMessage implements Serializable {
 
 	private static final long serialVersionUID = 4973747277121428372L;
 
@@ -31,9 +31,13 @@ public class FileSyncMessage implements Serializable{
 
 	private URI fileUrl;
 
+	private String baseFolderRelativePath;
+
 	private String fileName;
 
 	private boolean isDirectory = false;
+
+	private String originalFilePath = "";
 
 	public FileSyncMessage(FileMessageType fileMessageType, URI fileUrl, String fileName) {
 		this.fileMessageType = fileMessageType;
@@ -100,8 +104,47 @@ public class FileSyncMessage implements Serializable{
 	public void setDirectory(boolean isDirectory) {
 		this.isDirectory = isDirectory;
 	}
-	
-	public String toString(){
-		return "["+ fileMessageType.toString()+"] : " + fileUrl   ;
+
+	/**
+	 * The file path from base folder for the file .The directory structure for that file in base
+	 * folder For eg : /home/bbytes is the base folder and a file is inside
+	 * /home/bbytes/folder1/subfolder2/help.txt then baseFolderRelativePath value is
+	 * /folder1/subfolder2/
+	 * 
+	 * @return the baseFolderRelativePath
+	 */
+	public String getBaseFolderRelativePath() {
+		return baseFolderRelativePath;
+	}
+
+	/**
+	 * The file path from base folder for the file .The directory structure for that file in base
+	 * folder
+	 * 
+	 * @param baseFolderRelativePath
+	 *            the baseFolderRelativePath to set
+	 */
+	public void setBaseFolderRelativePath(String baseFolderRelativePath) {
+		this.baseFolderRelativePath = baseFolderRelativePath;
+	}
+
+	/**
+	 * @return the originalFilePath
+	 */
+	public String getOriginalFilePath() {
+		return originalFilePath;
+	}
+
+	/**
+	 * @param originalFilePath
+	 *            the originalFilePath to set
+	 */
+	public void setOriginalFilePath(String originalFilePath) {
+		this.originalFilePath = originalFilePath;
+	}
+
+	public String toString() {
+		return "IsDirectory : " + isDirectory + "  [" + fileMessageType.toString() + "] : " + originalFilePath
+				+ "[ BaseFolderRelativePath ] : " + baseFolderRelativePath;
 	}
 }

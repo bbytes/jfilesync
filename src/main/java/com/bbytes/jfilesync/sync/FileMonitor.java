@@ -33,16 +33,16 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 
 	private JChannel fileSyncChannel;
 
-	private String destFolderToMonitor;
+	private String sourceFolderToMonitor;
 
 	private long intervalInSeconds = 5;
 
 	private FileAlterationMonitor monitor;
-	
-	private String serverUrl; 
+
+	private String serverUrl;
 
 	public void start() throws Exception {
-		FileAlterationObserver observer = new FileAlterationObserver(destFolderToMonitor);
+		FileAlterationObserver observer = new FileAlterationObserver(sourceFolderToMonitor);
 		observer.addListener(this);
 		FileAlterationMonitor monitor = new FileAlterationMonitor(intervalInSeconds);
 		monitor.addObserver(observer);
@@ -53,45 +53,77 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 		monitor.stop();
 	}
 
+	/**
+	 * @return the sourceFolderToMonitor
+	 */
+	public String getSourceFolderToMonitor() {
+		return sourceFolderToMonitor;
+	}
+
+	/**
+	 * @param sourceFolderToMonitor
+	 *            the sourceFolderToMonitor to set
+	 */
+	public void setSourceFolderToMonitor(String sourceFolderToMonitor) {
+		this.sourceFolderToMonitor = sourceFolderToMonitor;
+	}
+
 	public void onFileChange(File file) {
-		fileModified(file,FileMessageType.FILE_UPDATED);
+		fileModified(file, FileMessageType.FILE_UPDATED, isDirectory(file));
 	}
 
 	public void onFileCreate(File file) {
-		fileModified(file,FileMessageType.FILE_CREATED);
+		fileModified(file, FileMessageType.FILE_CREATED, isDirectory(file));
 	}
 
 	public void onFileDelete(File file) {
-		fileModified(file,FileMessageType.FILE_DELETED);
+		fileModified(file, FileMessageType.FILE_DELETED, isDirectory(file));
 	}
 
-	private void fileModified(File file,FileMessageType fileMessageType) {
+	public void onDirectoryDelete(File directory) {
+		fileModified(directory, FileMessageType.FILE_DELETED, isDirectory(directory));
+	}
+
+	private void fileModified(File file, FileMessageType fileMessageType, boolean isDirectory) {
 		try {
-			String filePath = file.toURI().toString();
-			File desFolder = new File(destFolderToMonitor);
-			filePath = filePath.replace(desFolder.toURI().toString(), "");
-			URI fileDownloadURL = new URI(serverUrl + filePath);
-			FileSyncMessage fileSyncMessage = new FileSyncMessage(fileMessageType, fileDownloadURL,
-					file.getName());
+
+			File srcFolder = new File(sourceFolderToMonitor);
+
+			String filePath = file.getPath();
+			filePath = filePath.replace(srcFolder.getPath().toString(), "");
+
+			int index = filePath.lastIndexOf(File.separator);
+			String filename = null;
+			String relativePath = null;
+			if (!isDirectory) {
+				filename = filePath.substring(index + 1);
+				relativePath = filePath.replace(filename, "");
+			} else {
+				relativePath = filePath;
+			}
+
+			String filePathURLStyle = file.toURI().toString();
+
+			filePathURLStyle = filePathURLStyle.replace(srcFolder.toURI().toString(), "");
+			URI fileDownloadURL = new URI(serverUrl + filePathURLStyle);
+			FileSyncMessage fileSyncMessage = new FileSyncMessage(fileMessageType, fileDownloadURL, file.getName());
+			fileSyncMessage.setBaseFolderRelativePath(relativePath);
+			fileSyncMessage.setDirectory(isDirectory);
+			fileSyncMessage.setOriginalFilePath(file.getPath());
 			fileSyncChannel.send(new Message(null, null, fileSyncMessage));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	/**
-	 * @return the destFolderToMonitor
-	 */
-	public String getDestFolderToMonitor() {
-		return destFolderToMonitor;
-	}
-
-	/**
-	 * @param destFolderToMonitor
-	 *            the destFolderToMonitor to set
-	 */
-	public void setDestFolderToMonitor(String destFolderToMonitor) {
-		this.destFolderToMonitor = destFolderToMonitor;
+	private boolean isDirectory(File file) {
+		if (!file.exists()) {
+			// see if the file portion it doesn't have an extension
+			return file.getName().lastIndexOf('.') == -1;
+		} else {
+			// see if the path that's already in place is a file or directory
+			return file.isDirectory();
+		}
 	}
 
 	/**
@@ -132,7 +164,8 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 	}
 
 	/**
-	 * @param serverUrl the serverUrl to set
+	 * @param serverUrl
+	 *            the serverUrl to set
 	 */
 	public void setServerUrl(String serverUrl) {
 		this.serverUrl = serverUrl;

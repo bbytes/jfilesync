@@ -22,7 +22,7 @@ import org.jgroups.JChannel;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.support.ResourcePropertySource;
 
-import com.bbytes.jfilesync.sync.JFileSyncListenerThread;
+import com.bbytes.jfilesync.sync.JFileSyncListenerClientThread;
 
 /**
  * The file sync client which listens to file modification messages and modifies the destination
@@ -42,7 +42,7 @@ public class JFileSyncClient {
 
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	private JFileSyncListenerThread fileSyncListenerThread;
+	private JFileSyncListenerClientThread fileSyncListenerThread;
 
 	private String destinationFolder;
 
@@ -58,9 +58,8 @@ public class JFileSyncClient {
 		this.context.refresh();
 		fileSyncChannel = context.getBean(JChannel.class);
 		destinationFolder = (String) context.getBean("destinationFolder");
-		fileSyncListenerThread = new JFileSyncListenerThread(fileSyncChannel);
+		fileSyncListenerThread = new JFileSyncListenerClientThread(fileSyncChannel);
 		fileSyncListenerThread.setDestinationFolder(destinationFolder);
-		fileSyncListenerThread.setMode("client");
 	}
 
 	public void start() {
