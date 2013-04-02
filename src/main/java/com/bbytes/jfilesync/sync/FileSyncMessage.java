@@ -39,6 +39,8 @@ public class FileSyncMessage implements Serializable {
 
 	private String originalFilePath = "";
 
+	private long checksum;
+
 	public FileSyncMessage(FileMessageType fileMessageType, URI fileUrl, String fileName) {
 		this.fileMessageType = fileMessageType;
 		this.fileUrl = fileUrl;
@@ -146,5 +148,20 @@ public class FileSyncMessage implements Serializable {
 	public String toString() {
 		return "IsDirectory : " + isDirectory + "  [" + fileMessageType.toString() + "] : " + originalFilePath
 				+ "[ BaseFolderRelativePath ] : " + baseFolderRelativePath;
+	}
+
+	/**
+	 * @return the checksum
+	 */
+	public long getChecksum() {
+		return checksum;
+	}
+
+	/**
+	 * @param checksum
+	 *            the checksum to set
+	 */
+	public void setChecksum(long checksum) {
+		this.checksum = checksum;
 	}
 }

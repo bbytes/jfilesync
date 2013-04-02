@@ -24,5 +24,5 @@ package com.bbytes.jfilesync.sync;
  */
 public enum FileMessageType {
 
-	FILE_CREATED, FILE_UPDATED, FILE_DELETED
+	FILE_CREATED, FILE_UPDATED, FILE_DELETED , DIRECTORY_STRUCTURE_SYNC;
 }

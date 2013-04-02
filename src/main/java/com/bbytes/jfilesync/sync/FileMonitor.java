@@ -15,10 +15,15 @@ package com.bbytes.jfilesync.sync;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Collection;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
+import org.apache.log4j.Logger;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 
@@ -31,25 +36,36 @@ import org.jgroups.Message;
  */
 public class FileMonitor extends FileAlterationListenerAdaptor {
 
+	private static final Logger log = Logger.getLogger(FileMonitor.class);
+
 	private JChannel fileSyncChannel;
 
 	private String sourceFolderToMonitor;
 
 	private long intervalInSeconds = 5;
 
+	private long publishDirectoryStrunctureInSeconds = 15;
+
 	private FileAlterationMonitor monitor;
 
 	private String serverUrl;
 
+	private boolean running = true;
+
 	public void start() throws Exception {
 		FileAlterationObserver observer = new FileAlterationObserver(sourceFolderToMonitor);
 		observer.addListener(this);
-		FileAlterationMonitor monitor = new FileAlterationMonitor(intervalInSeconds);
+		monitor = new FileAlterationMonitor(intervalInSeconds);
 		monitor.addObserver(observer);
 		monitor.start();
+
+		StructureSyncThread structureSyncThread = new StructureSyncThread();
+		structureSyncThread.start();
+
 	}
 
 	public void stop() throws Exception {
+		running = false;
 		monitor.stop();
 	}
 
@@ -84,7 +100,7 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 		fileModified(directory, FileMessageType.FILE_DELETED, isDirectory(directory));
 	}
 
-	private void fileModified(File file, FileMessageType fileMessageType, boolean isDirectory) {
+	private synchronized void fileModified(File file, FileMessageType fileMessageType, boolean isDirectory) {
 		try {
 
 			File srcFolder = new File(sourceFolderToMonitor);
@@ -110,9 +126,13 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 			fileSyncMessage.setBaseFolderRelativePath(relativePath);
 			fileSyncMessage.setDirectory(isDirectory);
 			fileSyncMessage.setOriginalFilePath(file.getPath());
+
+			if (!file.isDirectory() && !fileMessageType.equals(FileMessageType.FILE_DELETED) && file.exists() && file.canRead())
+				fileSyncMessage.setChecksum(FileUtils.checksumCRC32(file));
+
 			fileSyncChannel.send(new Message(null, null, fileSyncMessage));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 	}
 
@@ -123,6 +143,14 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 		} else {
 			// see if the path that's already in place is a file or directory
 			return file.isDirectory();
+		}
+	}
+
+	public void syncFullDirsAndFiles() {
+		Collection<File> allFiles = FileUtils.listFilesAndDirs(new File(sourceFolderToMonitor),
+				TrueFileFilter.INSTANCE, DirectoryFileFilter.INSTANCE);
+		for (File file : allFiles) {
+			fileModified(file, FileMessageType.DIRECTORY_STRUCTURE_SYNC, file.isDirectory());
 		}
 	}
 
@@ -169,6 +197,47 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 	 */
 	public void setServerUrl(String serverUrl) {
 		this.serverUrl = serverUrl;
+	}
+
+	/**
+	 * @return the publishDirectoryStrunctureInSeconds
+	 */
+	public long getPublishDirectoryStrunctureInSeconds() {
+		return publishDirectoryStrunctureInSeconds;
+	}
+
+	/**
+	 * @param publishDirectoryStrunctureInSeconds
+	 *            the publishDirectoryStrunctureInSeconds to set
+	 */
+	public void setPublishDirectoryStrunctureInSeconds(long publishDirectoryStrunctureInSeconds) {
+		this.publishDirectoryStrunctureInSeconds = publishDirectoryStrunctureInSeconds;
+	}
+
+	class StructureSyncThread extends Thread implements Runnable {
+
+		public StructureSyncThread() {
+			super("structureBroadCast");
+		}
+
+		public void run() {
+			while (running) {
+
+				syncFullDirsAndFiles();
+
+				if (!running) {
+					break;
+				}
+
+				try {
+					Thread.sleep(publishDirectoryStrunctureInSeconds * 1000);
+				} catch (final InterruptedException ignored) {
+					ignored.printStackTrace();
+				}
+			}
+
+		}
+
 	}
 
 }

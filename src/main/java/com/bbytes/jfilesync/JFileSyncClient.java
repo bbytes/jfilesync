@@ -23,6 +23,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.support.ResourcePropertySource;
 
 import com.bbytes.jfilesync.sync.JFileSyncListenerClientThread;
+import com.bbytes.jfilesync.sync.ftp.FTPClientFactory;
 
 /**
  * The file sync client which listens to file modification messages and modifies the destination
@@ -35,7 +36,7 @@ import com.bbytes.jfilesync.sync.JFileSyncListenerClientThread;
 public class JFileSyncClient {
 
 	private static final Logger log = Logger.getLogger(JFileSyncClient.class);
-	
+
 	private ClassPathXmlApplicationContext context;
 
 	private JChannel fileSyncChannel;
@@ -46,6 +47,8 @@ public class JFileSyncClient {
 
 	private String destinationFolder;
 
+	private FTPClientFactory ftpClientFactory;
+
 	public JFileSyncClient() {
 		this.context = new ClassPathXmlApplicationContext(new String[] { "classpath:spring/jfilesync-client.xml" },
 				false);
@@ -53,13 +56,17 @@ public class JFileSyncClient {
 			context.getEnvironment().getPropertySources()
 					.addFirst(new ResourcePropertySource("classpath:jfilesync-client.properties"));
 		} catch (IOException e) {
-			log.error(e.getMessage(),e);
+			log.error(e.getMessage(), e);
 		}
 		this.context.refresh();
+		
 		fileSyncChannel = context.getBean(JChannel.class);
+		ftpClientFactory =  context.getBean(FTPClientFactory.class);
 		destinationFolder = (String) context.getBean("destinationFolder");
 		fileSyncListenerThread = new JFileSyncListenerClientThread(fileSyncChannel);
 		fileSyncListenerThread.setDestinationFolder(destinationFolder);
+		fileSyncListenerThread.setFtpClientFactory(ftpClientFactory);
+		
 	}
 
 	public void start() {

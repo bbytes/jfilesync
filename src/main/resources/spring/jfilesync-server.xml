@@ -33,11 +33,23 @@
 		init-method="start" destroy-method="stop">
 		<property name="sourceFolderToMonitor" value="${sync.folder.source}" />
 		<property name="intervalInSeconds" value="2" />
+		<property name="publishDirectoryStrunctureInSeconds" value="15" />
 		<property name="fileSyncChannel" ref="channelFactroy" />
 		<property name="serverUrl"
-			value="http://${file.web.server.host}:${file.web.server.port}/" />
+			value="ftp://${file.ftp.server.host}:${file.ftp.server.port}/" />
 	</bean>
 
-	<import resource="jetty-server.xml" />
+	<bean id="sourceFolder" class="java.lang.String">
+		<constructor-arg value="${sync.folder.destination}" />
+	</bean>
+	
+	<bean id="ftpServerUsername" class="java.lang.String">
+		<constructor-arg value="${ftp.server.username}" />
+	</bean>
+	<bean id="ftpServerPassword" class="java.lang.String">
+		<constructor-arg value="${ftp.server.password}" />
+	</bean>
+	
+	<import resource="ftp-server.xml" />
 
 </beans>

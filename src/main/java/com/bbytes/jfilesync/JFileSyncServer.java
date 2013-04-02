@@ -1,11 +1,16 @@
 package com.bbytes.jfilesync;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.ftpserver.ftplet.Authority;
+import org.apache.ftpserver.impl.DefaultFtpServer;
+import org.apache.ftpserver.usermanager.impl.BaseUser;
+import org.apache.ftpserver.usermanager.impl.WritePermission;
 import org.apache.log4j.Logger;
-import org.eclipse.jetty.server.Server;
 import org.jgroups.JChannel;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.support.ResourcePropertySource;
@@ -29,7 +34,7 @@ public class JFileSyncServer {
 
 	private JFileSyncListenerServerThread fileSyncListenerThread;
 
-	private Server server;
+	private DefaultFtpServer server;
 
 	private JChannel fileSyncChannel;
 
@@ -50,7 +55,7 @@ public class JFileSyncServer {
 		this.context.refresh();
 
 		fileSyncChannel = this.context.getBean(JChannel.class);
-		server = this.context.getBean(Server.class);
+		server = this.context.getBean(DefaultFtpServer.class);
 		fileSyncListenerThread = new JFileSyncListenerServerThread(fileSyncChannel);
 
 		// add shutdown hook
@@ -68,15 +73,16 @@ public class JFileSyncServer {
 			// call get() to make the thread finish the Callable call method
 			executor.submit(fileSyncListenerThread).get();
 
-			// to server jsp files we need to set this web context else ignore
-			// WebAppContext webAppContext = new WebAppContext();
-			// webAppContext.setContextPath("/");
-			// webAppContext.setWar(IDE_WAR_LOCATION);
-			//
-			// webAppContext.setServer(server);
+			BaseUser user = new BaseUser();
+			user.setName((String) this.context.getBean("ftpServerUsername"));
+			user.setPassword((String) this.context.getBean("ftpServerPassword"));
+
+			List<Authority> authorities = new ArrayList<Authority>();
+			authorities.add(new WritePermission());
+			user.setAuthorities(authorities);
+			server.getUserManager().save(user);
 
 			server.start();
-			server.join();
 
 			logger.debug("JFile Sync server started....");
 		} catch (Exception e) {
@@ -97,7 +103,33 @@ public class JFileSyncServer {
 	}
 
 	public static void main(String[] args) {
+		Object lock = new Object();
+
 		JFileSyncServer jFileSyncServer = new JFileSyncServer();
-		jFileSyncServer.start();
+
+		try {
+			String command = "start";
+
+			if (args != null && args.length > 0) {
+				command = args[0];
+			}
+
+			if (command.equals("start")) {
+				logger.info("Starting FTP server daemon");
+				jFileSyncServer.start();
+
+				synchronized (lock) {
+					lock.wait();
+				}
+			} else if (command.equals("stop")) {
+				synchronized (lock) {
+					lock.notify();
+				}
+				logger.info("Stopping FTP server daemon");
+				jFileSyncServer.shutDown();
+			}
+		} catch (Throwable t) {
+			logger.error("Daemon error", t);
+		}
 	}
 }

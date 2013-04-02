@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context" xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.1.xsd"> <bean 
+	id="ftpServer" factory-bean="ftpServerFactory" factory-method="createServer" 
+	init-method="start" /> <bean id="ftpServerFactory" class="org.apache.ftpserver.FtpServerFactory"> 
+	<property name="userManager"> <bean id="ftpUsers" factory-bean="ftpUsersFactory" 
+	factory-method="createUserManager" /> </property> </bean> <bean id="ftpUsersFactory" 
+	class="org.apache.ftpserver.usermanager.PropertiesUserManagerFactory"> <property 
+	name="file" value="users.properties" /> </bean> <bean id="fileSysView" class="com.bbytes.jfilesync.sync.ftp.JFileSyncFileSystemView"> 
+	</bean> -->
+
+<beans:beans xmlns="http://mina.apache.org/ftpserver/spring/v1"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://mina.apache.org/ftpserver/spring/v1 http://mina.apache.org/ftpserver/ftpserver-1.0.xsd 
+	   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd ">
+
+	<server id="myServer">
+		<listeners>
+			<nio-listener name="default" port="2121">
+			</nio-listener>
+		</listeners>
+
+		<file-user-manager file="users.properties"
+			encrypt-passwords="false" />
+
+		<filesystem>
+			<beans:bean
+				class="com.bbytes.jfilesync.sync.ftp.JFileSyncFileSystemFactory">
+				<beans:property name="sourceFolder" value="${sync.folder.source}"></beans:property>
+			</beans:bean>
+		</filesystem>
+
+	</server>
+
+</beans:beans>
+<!-- </beans> -->

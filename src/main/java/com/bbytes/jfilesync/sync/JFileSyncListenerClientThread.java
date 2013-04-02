@@ -14,16 +14,23 @@
 package com.bbytes.jfilesync.sync;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.ConnectException;
 import java.nio.file.FileSystemException;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
+
+import com.bbytes.jfilesync.sync.ftp.FTPClientFactory;
 
 /**
  * * The thread that listens to all file related events like file creation , deletion etc . File
@@ -41,12 +48,15 @@ public class JFileSyncListenerClientThread extends JFileSyncListenerServerThread
 
 	private String destinationFolder;
 
+	private FTPClientFactory ftpClientFactory;
+
+	private FTPClient ftpClient;
+
 	/**
 	 * @param fileSyncChannel
 	 */
 	public JFileSyncListenerClientThread(JChannel fileSyncChannel) {
 		super(fileSyncChannel);
-		// TODO Auto-generated constructor stub
 	}
 
 	/*
@@ -72,12 +82,14 @@ public class JFileSyncListenerClientThread extends JFileSyncListenerServerThread
 					case FILE_UPDATED:
 						fileModified(fileSyncMessage);
 						break;
+					case DIRECTORY_STRUCTURE_SYNC:
+						checkDirAndFiles(fileSyncMessage);
+						break;
 
 					default:
 						break;
 					}
 				}
-
 			}
 
 			/**
@@ -85,15 +97,21 @@ public class JFileSyncListenerClientThread extends JFileSyncListenerServerThread
 			 * node is deleted this is called
 			 */
 			public void viewAccepted(View newView) {
+				if (ftpClient == null || !ftpClient.isConnected()) {
+					ftpClient = ftpClientFactory.getClientInstance();
+				}
 				log.debug("Received node state " + newView);
 			}
-
 		});
 
 		latch.await();
 
 		return true;
 
+	}
+
+	private void checkDirAndFiles(FileSyncMessage fileSyncMessage) {
+		// TODO : need to get the logic done ..checksum should be used
 	}
 
 	private void fileDeleted(FileSyncMessage fileSyncMessage) {
@@ -107,7 +125,26 @@ public class JFileSyncListenerClientThread extends JFileSyncListenerServerThread
 
 	}
 
+	private File getLocalFile(FileSyncMessage fileSyncMessage) throws FileSystemException {
+		File theRelativeDir = null;
+		File localFile = null;
+		if (fileSyncMessage.getBaseFolderRelativePath() != null
+				& fileSyncMessage.getBaseFolderRelativePath().length() > 0) {
+			theRelativeDir = new File(new File(destinationFolder).getPath()
+					+ fileSyncMessage.getBaseFolderRelativePath());
+		}
+
+		if (theRelativeDir != null) {
+			localFile = new File(theRelativeDir.getPath() + File.separator + fileSyncMessage.getFileName());
+		} else {
+			localFile = new File(new File(destinationFolder).getPath() + File.separator + fileSyncMessage.getFileName());
+		}
+
+		return localFile;
+	}
+
 	private void fileModified(FileSyncMessage fileSyncMessage) {
+
 		if (!fileSyncMessage.isDirectory()) {
 			File theDir = null;
 			try {
@@ -126,13 +163,9 @@ public class JFileSyncListenerClientThread extends JFileSyncListenerServerThread
 					}
 				}
 				if (theDir != null) {
-					FileUtils.copyURLToFile(fileSyncMessage.getFileUrl().toURL(), new File(theDir.getPath()
-							+ File.separator + fileSyncMessage.getFileName()), 20000, 20000);
+					copyFileToDestinationFolder(theDir, fileSyncMessage);
 				} else {
-					FileUtils.copyURLToFile(
-							fileSyncMessage.getFileUrl().toURL(),
-							new File(new File(destinationFolder).getPath() + File.separator
-									+ fileSyncMessage.getFileName()), 20000, 20000);
+					copyFileToDestinationFolder(new File(destinationFolder), fileSyncMessage);
 				}
 
 			} catch (IOException e) {
@@ -167,4 +200,41 @@ public class JFileSyncListenerClientThread extends JFileSyncListenerServerThread
 	public void setDestinationFolder(String destinationFolder) {
 		this.destinationFolder = destinationFolder;
 	}
+
+	public void copyFileToDestinationFolder(File dir, FileSyncMessage fileSyncMessage) {
+		try {
+			if (ftpClient == null || !ftpClient.isConnected()) {
+				ftpClient = ftpClientFactory.getClientInstance();
+				if (!ftpClient.isConnected()) {
+					throw new ConnectException("FTP client not connected. Make sure FTP server is running");
+				}
+			}
+			FTPFile file = ftpClient.mlistFile(fileSyncMessage.getBaseFolderRelativePath() + "/"
+					+ fileSyncMessage.getFileName());
+			OutputStream output;
+			output = new FileOutputStream(dir.getPath() + File.separator + file.getName());
+			// get the file from the remote system
+			ftpClient.retrieveFile(file.getName(), output);
+			// close output stream
+			output.close();
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * @return the ftpClientFactory
+	 */
+	public FTPClientFactory getFtpClientFactory() {
+		return ftpClientFactory;
+	}
+
+	/**
+	 * @param ftpClientFactory
+	 *            the ftpClientFactory to set
+	 */
+	public void setFtpClientFactory(FTPClientFactory ftpClientFactory) {
+		this.ftpClientFactory = ftpClientFactory;
+	}
+
 }

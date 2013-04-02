@@ -19,9 +19,26 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 		<property name="gossipBindAddress" value="${node.discovery.host}" />
 	</bean>
 
+	<bean id="ftpServerUsername" class="java.lang.String">
+		<constructor-arg value="${ftp.server.username}" />
+	</bean>
+	<bean id="ftpServerPassword" class="java.lang.String">
+		<constructor-arg value="${ftp.server.password}" />
+	</bean>
+
 
 	<bean id="destinationFolder" class="java.lang.String">
 		<constructor-arg value="${sync.folder.destination}" />
 	</bean>
+	
+	<bean id="ftpClientFactory" class="com.bbytes.jfilesync.sync.ftp.FTPClientFactory">
+		<property name="host" value="localhost" />
+		<property name="port" value="2121" />
+		<property name="username" value="a" />
+		<property name="password" value="b" />
+		
+	</bean>
+	
+	
 
 </beans>
