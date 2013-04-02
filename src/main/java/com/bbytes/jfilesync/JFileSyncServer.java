@@ -108,6 +108,7 @@ public class JFileSyncServer {
 		JFileSyncServer jFileSyncServer = new JFileSyncServer();
 
 		try {
+			
 			String command = "start";
 
 			if (args != null && args.length > 0) {
@@ -116,6 +117,7 @@ public class JFileSyncServer {
 
 			if (command.equals("start")) {
 				logger.info("Starting FTP server daemon");
+				logger.info("Type 'stop' to stop the server");
 				jFileSyncServer.start();
 
 				synchronized (lock) {

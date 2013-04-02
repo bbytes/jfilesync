@@ -13,11 +13,11 @@
  */
 package com.bbytes.jfilesync.sync;
 
-import java.net.URI;
 import java.util.Collection;
 
 /**
- * The file events are sent as file sync messages to client nodes
+ * The file events are sent as file sync messages to client nodes. The dir file list sent with
+ * checksum to find if any modification
  * 
  * @author Thanneer
  * 
@@ -25,7 +25,6 @@ import java.util.Collection;
  */
 public class FullDirSyncMessage extends FileSyncMessage {
 
-	
 	private static final long serialVersionUID = 4032122039061595484L;
 
 	private Collection<FileSyncMessage> listOfFilesAndDir;
@@ -35,8 +34,8 @@ public class FullDirSyncMessage extends FileSyncMessage {
 	 * @param fileUrl
 	 * @param fileName
 	 */
-	public FullDirSyncMessage(FileMessageType fileMessageType, URI fileUrl, String fileName) {
-		super(fileMessageType, fileUrl, fileName);
+	public FullDirSyncMessage(FileMessageType fileMessageType, String fileName) {
+		super(fileMessageType, fileName);
 	}
 
 	/**
@@ -47,11 +46,11 @@ public class FullDirSyncMessage extends FileSyncMessage {
 	}
 
 	/**
-	 * @param listOfFilesAndDir the listOfFilesAndDir to set
+	 * @param listOfFilesAndDir
+	 *            the listOfFilesAndDir to set
 	 */
 	public void setListOfFilesAndDir(Collection<FileSyncMessage> listOfFilesAndDir) {
 		this.listOfFilesAndDir = listOfFilesAndDir;
 	}
-
 
 }

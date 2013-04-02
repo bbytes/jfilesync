@@ -212,9 +212,9 @@ public class JFileSyncListenerClientThread extends JFileSyncListenerServerThread
 			FTPFile file = ftpClient.mlistFile(fileSyncMessage.getBaseFolderRelativePath() + "/"
 					+ fileSyncMessage.getFileName());
 			OutputStream output;
-			output = new FileOutputStream(dir.getPath() + File.separator + file.getName());
+			output = new FileOutputStream(dir.getPath() + File.separator + fileSyncMessage.getFileName());
 			// get the file from the remote system
-			ftpClient.retrieveFile(file.getName(), output);
+			ftpClient.retrieveFile(fileSyncMessage.getFileName(), output);
 			// close output stream
 			output.close();
 		} catch (Exception e) {

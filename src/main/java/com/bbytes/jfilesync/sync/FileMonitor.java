@@ -14,7 +14,6 @@
 package com.bbytes.jfilesync.sync;
 
 import java.io.File;
-import java.net.URI;
 import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
@@ -28,7 +27,7 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 
 /**
- * Monitors the source file for modification anf fires file messages
+ * Monitors the source file for modification and fire file messages
  * 
  * @author Thanneer
  * 
@@ -42,8 +41,10 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 
 	private String sourceFolderToMonitor;
 
+	// interval to scan the source folder for changes 
 	private long intervalInSeconds = 5;
 
+	// interval to scan the dir structure and find checksum and push it to client
 	private long publishDirectoryStrunctureInSeconds = 15;
 
 	private FileAlterationMonitor monitor;
@@ -118,16 +119,13 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 				relativePath = filePath;
 			}
 
-			String filePathURLStyle = file.toURI().toString();
-
-			filePathURLStyle = filePathURLStyle.replace(srcFolder.toURI().toString(), "");
-			URI fileDownloadURL = new URI(serverUrl + filePathURLStyle);
-			FileSyncMessage fileSyncMessage = new FileSyncMessage(fileMessageType, fileDownloadURL, file.getName());
+			FileSyncMessage fileSyncMessage = new FileSyncMessage(fileMessageType, file.getName());
 			fileSyncMessage.setBaseFolderRelativePath(relativePath);
 			fileSyncMessage.setDirectory(isDirectory);
 			fileSyncMessage.setOriginalFilePath(file.getPath());
 
-			if (!file.isDirectory() && !fileMessageType.equals(FileMessageType.FILE_DELETED) && file.exists() && file.canRead())
+			if (!file.isDirectory() && !fileMessageType.equals(FileMessageType.FILE_DELETED) && file.exists()
+					&& file.canRead())
 				fileSyncMessage.setChecksum(FileUtils.checksumCRC32(file));
 
 			fileSyncChannel.send(new Message(null, null, fileSyncMessage));
@@ -146,6 +144,10 @@ public class FileMonitor extends FileAlterationListenerAdaptor {
 		}
 	}
 
+	/**
+	 * Scan the entire source folder and send the lsit of files with checksum . if checksum is
+	 * different on client side then these files are replaced by client
+	 */
 	public void syncFullDirsAndFiles() {
 		Collection<File> allFiles = FileUtils.listFilesAndDirs(new File(sourceFolderToMonitor),
 				TrueFileFilter.INSTANCE, DirectoryFileFilter.INSTANCE);

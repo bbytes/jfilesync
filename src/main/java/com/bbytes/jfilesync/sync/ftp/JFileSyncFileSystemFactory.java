@@ -21,11 +21,11 @@ import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
 
 /**
- * 
+ * Custom FTP file system that only gives access to source folder configured in properties file.
  *
  * @author Thanneer
  *
- * @version 
+ * @version 0.0.1 
  */
 public class JFileSyncFileSystemFactory implements FileSystemFactory{
 

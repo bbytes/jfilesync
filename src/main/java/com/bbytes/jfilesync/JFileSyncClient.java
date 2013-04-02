@@ -97,7 +97,9 @@ public class JFileSyncClient {
 
 	public static void main(String[] args) {
 		JFileSyncClient client = new JFileSyncClient();
+		log.debug("File sync client starting...");
 		client.start();
+		log.debug("File sync client running...");
 
 	}
 

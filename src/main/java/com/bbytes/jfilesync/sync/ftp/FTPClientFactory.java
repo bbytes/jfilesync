@@ -27,7 +27,7 @@ import org.apache.commons.net.ftp.FTPReply;
 import org.apache.log4j.Logger;
 
 /**
- * 
+ * Factory class to create FTP client with initialized connections
  * 
  * @author Thanneer
  * 
@@ -49,6 +49,10 @@ public class FTPClientFactory {
 
 	}
 
+	/**
+	 * Get {@link FTPClient} with initialized connects to server given in properties file
+	 * @return
+	 */
 	public FTPClient getClientInstance() {
 
 		ExecutorService ftpclientConnThreadPool = Executors.newSingleThreadExecutor();
@@ -92,11 +96,10 @@ public class FTPClientFactory {
 
 		FTPClient ftpClient = new FTPClient();
 		try {
-			System.out.println("Started..");
-			ftpClient = future.get(10, TimeUnit.SECONDS);
-			System.out.println("Finished!");
+			// wait for 100 secs for acquiring conn else terminate
+			ftpClient = future.get(100, TimeUnit.SECONDS);
 		} catch (TimeoutException e) {
-			System.out.println("Terminated!");
+			log.info("FTP client Conn wait thread terminated!");
 		} catch (InterruptedException e) {
 			log.error(e.getMessage(), e);
 		} catch (ExecutionException e) {

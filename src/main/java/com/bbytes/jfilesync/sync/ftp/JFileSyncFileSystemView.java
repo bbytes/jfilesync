@@ -23,11 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
+ * The File system view that shows the source folder structure 
  * 
  * @author Thanneer
  * 
- * @version
+ * @version 0.0.1
  */
 public class JFileSyncFileSystemView implements FileSystemView {
 
