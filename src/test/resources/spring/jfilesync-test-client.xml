@@ -1,13 +1,14 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
 
 	<bean
 		class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
 		<property name="locations">
 			<list>
-				<value>classpath:jfilesync.properties</value>
+				<value>classpath:/jfilesync-test-server.properties</value>
+				<value>classpath:/jfilesync-test-client.properties</value>
 			</list>
 		</property>
 	</bean>
@@ -30,14 +31,15 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 	<bean id="destinationFolder" class="java.lang.String">
 		<constructor-arg value="${sync.folder.destination}" />
 	</bean>
-	
+
 	<bean id="ftpClientFactory" class="com.bbytes.jfilesync.sync.ftp.FTPClientFactory">
-		<property name="host" value="${file.ftp.server.host}" />
-		<property name="port" value="${file.ftp.server.port}" />
-		<property name="username" value="${ftp.server.username}" />
-		<property name="password" value="${ftp.server.password}" />
+		<property name="host" value="localhost" />
+		<property name="port" value="2121" />
+		<property name="username" value="a" />
+		<property name="password" value="b" />
+
 	</bean>
-	
-	
+
+
 
 </beans>

@@ -17,11 +17,14 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.bbytes.jfilesync.jgroup.ChannelBeanFactory;
 
 /**
  * 
@@ -31,26 +34,39 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @version
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:spring/jfilesync-client.xml" })
-public class RecieveMessageTest {
+@ContextConfiguration(locations = { "classpath:spring/jfilesync-test-client.xml",
+		"classpath:spring/jfilesync-test-server.xml" })
+public class SyncChannelSendRecieveTest {
 
 	@Autowired
-	JChannel channel;
+	ChannelBeanFactory channelBeanFactory;
+
+
 
 	@Test
-	public void testSend() throws  InterruptedException {
-		channel.setReceiver(new ReceiverAdapter() {
+	public void testSendRecieve() throws Exception {
+		channelBeanFactory.setSingleton(false);
+		
+		final JChannel channelRecieve = channelBeanFactory.getObject();
+		channelRecieve.setReceiver(new ReceiverAdapter() {
 			public void receive(Message msg) {
+				Assert.assertEquals(msg.getObject().toString(), "test msg");
+				channelRecieve.close();
 				System.out.println("received msg from " + msg.getSrc() + ": " + msg.getObject());
 			}
-			
+
 			public void viewAccepted(View view) {
-				System.out.println("new client joined " +view.toString());
-				
-		    }
-			
+				System.out.println("new client joined " + view.toString());
+
+			}
+
 		});
-		Thread.currentThread().sleep(2000);
-		channel.close();
+		
+		JChannel channelSend = channelBeanFactory.getObject();
+		channelSend.send(new Message(null, null, "test msg"));
+		channelSend.close();
+		
+	
 	}
+
 }

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+
+	<bean
+		class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:/jfilesync-test-server.properties</value>
+				<value>classpath:/jfilesync-test-client.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="gossipServer" class="org.jgroups.stack.GossipRouter"
+		init-method="start" destroy-method="stop">
+		<property name="port" value="${node.discovery.port}" />
+		<property name="bindAddress" value="${node.discovery.host}" />
+	</bean>
+
+	<bean id="channelFactroy" class="com.bbytes.jfilesync.jgroup.ChannelBeanFactory">
+		<property name="clusterName" value="jfilesync" />
+		<property name="port" value="${file.sync.port}" />
+		<property name="gossipPort" value="${node.discovery.port}" />
+		<property name="gossipBindAddress" value="${node.discovery.host}" />
+	</bean>
+
+
+
+	<bean id="fileMonitor" class="com.bbytes.jfilesync.sync.FileMonitor"
+		init-method="start" destroy-method="stop">
+		<property name="sourceFolderToMonitor" value="${sync.folder.source}" />
+		<property name="intervalInSeconds" value="2" />
+		<property name="publishDirectoryStrunctureInSeconds" value="15" />
+		<property name="fileSyncChannel" ref="channelFactroy" />
+		<property name="serverUrl"
+			value="ftp://${file.ftp.server.host}:${file.ftp.server.port}/" />
+	</bean>
+
+	<bean id="sourceFolder" class="java.lang.String">
+		<constructor-arg value="${sync.folder.source}" />
+	</bean>
+	
+	<bean id="ftpServerUsername" class="java.lang.String">
+		<constructor-arg value="${ftp.server.username}" />
+	</bean>
+	<bean id="ftpServerPassword" class="java.lang.String">
+		<constructor-arg value="${ftp.server.password}" />
+	</bean>
+	
+	<import resource="ftp-server.xml" />
+
+</beans>

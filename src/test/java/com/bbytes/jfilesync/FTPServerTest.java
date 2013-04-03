@@ -42,6 +42,6 @@ public class FTPServerTest {
 	public void startServer() throws FtpException, InterruptedException{
 	
 		ftpServer.start();
-		Thread.currentThread().sleep(100000);
+		Thread.currentThread().sleep(10000);
 	}
 }
